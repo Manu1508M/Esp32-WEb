@@ -1,0 +1,93 @@
+<!DOCTYPE html> 
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Control de Riego ESP32</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e0f7fa;
+      text-align: center;
+      padding-top: 40px;
+    }
+
+    h1 {
+      color: #00796b;
+    }
+
+    .boton {
+      width: 160px;
+      height: 45px;
+      margin: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      color: white;
+    }
+
+    .on { background-color: #4caf50; }
+    .off { background-color: #f44336; }
+    .on:hover { background-color: #388e3c; }
+    .off:hover { background-color: #d32f2f; }
+
+    #estado {
+      margin-top: 25px;
+      font-size: 18px;
+      color: #333;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🌿 Panel de Riego ESP32</h1>
+
+  <p>Control simple para encender/apagar riego y bomba de agua.</p>
+
+  <button class="boton on" onclick="enviarComando('LED_ON')">Encender Riego</button>
+  <button class="boton off" onclick="enviarComando('LED_OFF')">Apagar Riego</button>
+  <br>
+  <button class="boton on" onclick="enviarComando('BOMBA_ON')">Encender Bomba</button>
+  <button class="boton off" onclick="enviarComando('BOMBA_OFF')">Apagar Bomba</button>
+
+  <div id="estado">Esperando comando...</div>
+
+  <script>
+    const ipESP32 = "http://esp32.local"; // Usamos mDNS
+
+    // Para guardar el estado actual y mostrar ambos estados juntos
+    let estadoLED = "✅ LED: apagado";
+    let estadoBOMBA = "🛑 Bomba: apagada";
+
+    function enviarComando(accion) {
+      fetch(`${ipESP32}/${accion}`)
+        .then(res => res.text())
+        .then(mensaje => {
+          // Actualizar estado según el comando
+          if (accion.startsWith("LED")) {
+            if (accion.endsWith("ON")) {
+              estadoLED = "✅ Riego prendido.";
+            } else {
+              estadoLED = "🛑 Riego apagado.";
+            }
+          } else if (accion.startsWith("BOMBA")) {
+            if (accion.endsWith("ON")) {
+              estadoBOMBA = "✅ Bomba prendida.";
+            } else {
+              estadoBOMBA = "🛑 Bomba apagada.";
+            }
+          }
+
+          // Mostrar ambos estados y la respuesta del ESP32
+          document.getElementById("estado").textContent = `${estadoLED}\n${estadoBOMBA}\nRespuesta: ${mensaje}`;
+        })
+        .catch(err => {
+          document.getElementById("estado").textContent = "❌ Error al conectar con el ESP32.";
+          console.error(err);
+        });
+    }
+  </script>
+
+</body>
+</html>
